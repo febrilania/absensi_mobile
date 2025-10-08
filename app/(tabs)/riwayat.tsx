@@ -77,7 +77,7 @@ export default function Riwayat() {
     const date = new Date(tanggal);
     return new Intl.DateTimeFormat("id-ID", {
       day: "2-digit",
-      month: "long", // nama bulan panjang (Oktober, November, dst.)
+      month: "long",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
@@ -103,7 +103,7 @@ export default function Riwayat() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      
       <View style={styles.header}>
         <Image
           source={require("../../assets/images/peradaban.png")}
@@ -112,7 +112,7 @@ export default function Riwayat() {
         />
         <Text style={styles.title}>Riwayat Presensi</Text>
 
-        {/* Tombol titik tiga */}
+        
         <Pressable
           onPress={() => setShowMenu(!showMenu)}
           style={styles.menuButton}
@@ -120,7 +120,7 @@ export default function Riwayat() {
           <Ionicons name="ellipsis-vertical" size={24} color="white" />
         </Pressable>
 
-        {/* Dropdown menu */}
+        
         {showMenu && (
           <View style={styles.dropdown}>
             <TouchableOpacity
@@ -134,7 +134,7 @@ export default function Riwayat() {
         )}
       </View>
 
-      {/* Isi */}
+ 
       <View style={styles.content}>
         {loading ? (
           <ActivityIndicator size="large" color="#1E90FF" />

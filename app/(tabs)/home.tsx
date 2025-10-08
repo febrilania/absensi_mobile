@@ -46,7 +46,7 @@ export default function Home() {
 
       console.log("Respons dari /me:", response.data);
 
-      // Sesuaikan parsing dengan struktur API
+      
       if (response.data?.user) {
         setUser(response.data.user);
       } else {
@@ -79,7 +79,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+     
       <View style={styles.header}>
         <Image
           source={require("../../assets/images/peradaban.png")}
@@ -88,7 +88,7 @@ export default function Home() {
         />
         <Text style={styles.title}>Data Pengguna</Text>
 
-        {/* Tombol titik tiga */}
+        
         <Pressable
           onPress={() => setShowMenu(!showMenu)}
           style={styles.menuButton}
@@ -96,7 +96,7 @@ export default function Home() {
           <Ionicons name="ellipsis-vertical" size={24} color="white" />
         </Pressable>
 
-        {/* Dropdown menu */}
+        
         {showMenu && (
           <View style={styles.dropdown}>
             <TouchableOpacity
@@ -110,7 +110,7 @@ export default function Home() {
         )}
       </View>
 
-      {/* Isi */}
+      
       <View style={styles.content}>
         {loading ? (
           <ActivityIndicator size="large" color="#1E90FF" />
