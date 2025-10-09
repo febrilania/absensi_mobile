@@ -1,19 +1,18 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-// Buat instance axios
+
 const api = axios.create({
   baseURL: "https://sim.peradaban.ac.id/wp-json/simbaru/v1",
   headers: { "Content-Type": "application/json" },
 });
 
-// Tambahkan interceptor
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Kalau error 401 (unauthorized) dan belum dicoba refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -22,8 +21,6 @@ api.interceptors.response.use(
         if (!refreshToken) {
           throw new Error("Refresh token tidak ada");
         }
-
-        // Panggil endpoint refresh
         const res = await axios.post(
           "https://sim.peradaban.ac.id/wp-json/simbaru/v1/refresh",
           { refresh_token: refreshToken }

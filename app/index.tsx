@@ -44,7 +44,7 @@ export default function HomeScreen() {
         await SecureStore.setItemAsync("token", token);
 
         Alert.alert("Berhasil", "Login berhasil!");
-        router.replace("/(tabs)/home");
+        router.replace("/(tabs)/beranda");
       } else {
         Alert.alert("Gagal", "Token tidak ditemukan dalam respon server.");
       }

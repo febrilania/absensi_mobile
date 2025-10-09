@@ -1,11 +1,13 @@
 import api from "@/src/api/api";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Animated,
     FlatList,
     Image,
     Pressable,
@@ -21,6 +23,33 @@ export default function Riwayat() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const headerAnim = useRef(new Animated.Value(-150)).current;
+  const listAnim = useRef(new Animated.Value(0)).current;
+
+  const playAnimations = useCallback(() => {
+    headerAnim.setValue(-150);
+    listAnim.setValue(0);
+
+    Animated.timing(headerAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(listAnim, {
+      toValue: 1,
+      duration: 600,
+      delay: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [headerAnim, listAnim]);
+
+  useFocusEffect(
+    useCallback(() => {
+      playAnimations();
+    }, [playAnimations])
+  );
+
   const getDataRiwayat = async () => {
     try {
       setLoading(true);
@@ -33,15 +62,12 @@ export default function Riwayat() {
         return;
       }
 
-      const response = await api.get(
-        "/presensi/riwayat?limit=10",
-        {
-          headers: {
-            XAuthorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await api.get("/presensi/riwayat?limit=10", {
+        headers: {
+          XAuthorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.data?.riwayat) {
         setRiwayat(response.data.riwayat);
@@ -103,8 +129,15 @@ export default function Riwayat() {
 
   return (
     <View style={styles.container}>
-      
-      <View style={styles.header}>
+      {/* 🔹 Header animasi */}
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            transform: [{ translateY: headerAnim }],
+          },
+        ]}
+      >
         <Image
           source={require("../../assets/images/peradaban.png")}
           style={styles.logo}
@@ -112,7 +145,6 @@ export default function Riwayat() {
         />
         <Text style={styles.title}>Riwayat Presensi</Text>
 
-        
         <Pressable
           onPress={() => setShowMenu(!showMenu)}
           style={styles.menuButton}
@@ -120,7 +152,6 @@ export default function Riwayat() {
           <Ionicons name="ellipsis-vertical" size={24} color="white" />
         </Pressable>
 
-        
         {showMenu && (
           <View style={styles.dropdown}>
             <TouchableOpacity
@@ -132,26 +163,55 @@ export default function Riwayat() {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </Animated.View>
 
- 
-      <View style={styles.content}>
+      {/* 🔹 Konten animasi */}
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: listAnim,
+            transform: [
+              {
+                translateY: listAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [50, 0],
+                }),
+              },
+            ],
+          },
+        ]}
+      >
         {loading ? (
           <ActivityIndicator size="large" color="#1E90FF" />
         ) : (
           <FlatList
             data={riwayat}
             keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.card}>
-                <Text style={styles.makul}>{item.makul}</Text>
-                <Text>Pertemuan: {item.pertemuan}</Text>
-                <Text>Tanggal: {formatTanggal(item.tgl)}</Text>
-                <Text>Dosen: {item.nmdosen}</Text>
-                <Text>Status: {getStatusLabel(item.status)}</Text>
-              </View>
+            renderItem={({ item, index }) => (
+              <Animated.View
+                style={{
+                  opacity: listAnim,
+                  transform: [
+                    {
+                      translateY: listAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [20 * (index + 1), 0],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <View style={styles.card}>
+                  <Text style={styles.makul}>{item.makul}</Text>
+                  <Text>Pertemuan: {item.pertemuan}</Text>
+                  <Text>Tanggal: {formatTanggal(item.tgl)}</Text>
+                  <Text>Dosen: {item.nmdosen}</Text>
+                  <Text>Status: {getStatusLabel(item.status)}</Text>
+                </View>
+              </Animated.View>
             )}
-            refreshing={loading} 
+            refreshing={loading}
             onRefresh={getDataRiwayat}
             contentContainerStyle={{ paddingBottom: 60 }}
             ListEmptyComponent={
@@ -161,7 +221,7 @@ export default function Riwayat() {
             }
           />
         )}
-      </View>
+      </Animated.View>
     </View>
   );
 }

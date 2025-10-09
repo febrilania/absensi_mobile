@@ -1,24 +1,68 @@
 import api from "@/src/api/api";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
   Pressable,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
   const [showMenu, setShowMenu] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+
+  // Animated values
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const translateY = useState(new Animated.Value(30))[0];
+  const bounceAnim = useState(new Animated.Value(0.5))[0];
+  const headerAnim = useState(new Animated.Value(-100))[0]; // header mulai dari atas layar
+
+  const runAnimation = () => {
+    fadeAnim.setValue(0);
+    translateY.setValue(30);
+    bounceAnim.setValue(0.5);
+    headerAnim.setValue(-100);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(bounceAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(headerAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const getUserData = async () => {
     try {
@@ -32,23 +76,16 @@ export default function Home() {
         return;
       }
 
-      console.log("Token terkirim ke /me:", token);
+      const response = await api.get("/me", {
+        headers: {
+          XAuthorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      const response = await api.get(
-        "/me",
-        {
-          headers: {
-            XAuthorization: `bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Respons dari /me:", response.data);
-
-      
       if (response.data?.user) {
         setUser(response.data.user);
+        runAnimation();
       } else {
         Alert.alert(
           "Gagal",
@@ -56,19 +93,25 @@ export default function Home() {
         );
       }
     } catch (error: any) {
-      console.error(
-        "Error getUserData:",
-        error.response?.data || error.message
-      );
       Alert.alert("Error", "Terjadi kesalahan saat mengambil data.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
     getUserData();
   }, []);
+
+  // Jalankan animasi ulang setiap kali screen difokuskan
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        runAnimation();
+      }
+    }, [user])
+  );
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync("token");
@@ -77,10 +120,19 @@ export default function Home() {
     router.replace("/");
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    getUserData();
+  };
+
   return (
-    <View style={styles.container}>
-     
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" backgroundColor="#1E90FF" />
+
+      {/* Header dengan animasi turun dari atas */}
+      <Animated.View
+        style={[styles.header, { transform: [{ translateY: headerAnim }] }]}
+      >
         <Image
           source={require("../../assets/images/peradaban.png")}
           style={styles.logo}
@@ -88,7 +140,6 @@ export default function Home() {
         />
         <Text style={styles.title}>Data Pengguna</Text>
 
-        
         <Pressable
           onPress={() => setShowMenu(!showMenu)}
           style={styles.menuButton}
@@ -96,7 +147,6 @@ export default function Home() {
           <Ionicons name="ellipsis-vertical" size={24} color="white" />
         </Pressable>
 
-        
         {showMenu && (
           <View style={styles.dropdown}>
             <TouchableOpacity
@@ -108,14 +158,42 @@ export default function Home() {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </Animated.View>
 
-      
-      <View style={styles.content}>
+      {/* Konten dengan ScrollView + RefreshControl */}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {loading ? (
           <ActivityIndicator size="large" color="#1E90FF" />
         ) : user ? (
-          <>
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY }],
+            }}
+          >
+            {/* Foto Profil dengan bounce */}
+            <View style={styles.photoWrapper}>
+              <Animated.Image
+                source={{
+                  uri: user.foto
+                    ? user.foto
+                    : "https://sim.peradaban.ac.id/wp-content/uploads/mhs/data/default.png",
+                }}
+                style={[
+                  styles.photo,
+                  {
+                    transform: [{ scale: bounceAnim }],
+                  },
+                ]}
+                resizeMode="cover"
+              />
+            </View>
+
             <Text style={styles.label}>Nama Lengkap</Text>
             <Text style={styles.value}>{user.nama}</Text>
 
@@ -127,14 +205,14 @@ export default function Home() {
 
             <Text style={styles.label}>No HP</Text>
             <Text style={styles.value}>{user.hp}</Text>
-          </>
+          </Animated.View>
         ) : (
           <Text style={{ textAlign: "center", color: "#555" }}>
             Data tidak tersedia.
           </Text>
         )}
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -142,8 +220,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#E8F1FF" },
   header: {
     backgroundColor: "#1E90FF",
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingVertical: 20,
     alignItems: "center",
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
@@ -151,19 +228,14 @@ const styles = StyleSheet.create({
   },
   logo: { width: "40%", height: 90, marginBottom: 5 },
   title: { fontSize: 22, fontWeight: "bold", color: "white" },
-  menuButton: { position: "absolute", right: 20, top: 70, padding: 5 },
+  menuButton: { position: "absolute", right: 20, top: 30, padding: 5 },
   dropdown: {
     position: "absolute",
     right: 15,
-    top: 100,
+    top: 70,
     backgroundColor: "white",
     borderRadius: 8,
     elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    zIndex: 10,
   },
   dropdownItem: {
     flexDirection: "row",
@@ -178,6 +250,19 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   content: { padding: 20 },
+  photoWrapper: {
+    alignItems: "center",
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  photo: {
+    width: 150,
+    height: 200,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: "#1E90FF",
+    backgroundColor: "#eee",
+  },
   label: {
     fontSize: 14,
     color: "#333",
