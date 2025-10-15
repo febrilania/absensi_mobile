@@ -18,7 +18,7 @@
       "bundleIdentifier": "com.chuenk.simbaru"
     },
     "android": {
-      "versionCode": 3,
+      "versionCode": 4,
       "package": "com.chuenk.simbaru",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/simbaru.png",
