@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Layout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -13,13 +16,13 @@ export default function Layout() {
           backgroundColor: "#fff",
           borderTopWidth: 0,
           elevation: 10,
-          height: 70,
+          height: 60 + insets.bottom, // tambahkan tinggi sesuai area aman bawah
+          paddingBottom: insets.bottom, // supaya isi tab tidak kepotong
         },
         tabBarActiveTintColor: "#1E90FF",
         tabBarInactiveTintColor: "#aaa",
       }}
     >
-      {/* Tab kiri: Data */}
       <Tabs.Screen
         name="beranda"
         options={{
@@ -38,8 +41,6 @@ export default function Layout() {
           ),
         }}
       />
-
-      {/* Tab tengah: Scan (tombol menonjol biru) */}
       <Tabs.Screen
         name="scan"
         options={{
@@ -62,8 +63,6 @@ export default function Layout() {
           ),
         }}
       />
-
-      {/* Tab kanan: Riwayat */}
       <Tabs.Screen
         name="riwayat"
         options={{

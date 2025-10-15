@@ -5,16 +5,15 @@ import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    FlatList,
-    Image,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function Riwayat() {
@@ -138,19 +137,16 @@ export default function Riwayat() {
           },
         ]}
       >
-        <Image
-          source={require("../../assets/images/peradaban.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Riwayat Presensi</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>Riwayat Presensi</Text>
 
-        <Pressable
-          onPress={() => setShowMenu(!showMenu)}
-          style={styles.menuButton}
-        >
-          <Ionicons name="ellipsis-vertical" size={24} color="white" />
-        </Pressable>
+          <Pressable
+            onPress={() => setShowMenu(!showMenu)}
+            style={styles.menuButton}
+          >
+            <Ionicons name="ellipsis-vertical" size={24} color="white" />
+          </Pressable>
+        </View>
 
         {showMenu && (
           <View style={styles.dropdown}>
@@ -227,31 +223,39 @@ export default function Riwayat() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#E8F1FF" },
+  container: { flex: 1, backgroundColor: "#E8F1FF", paddingBottom: 60 },
   header: {
     backgroundColor: "#1E90FF",
-    paddingTop: 60,
-    paddingBottom: 20,
-    alignItems: "center",
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    elevation: 5,
-  },
-  logo: { width: "40%", height: 90, marginBottom: 5 },
-  title: { fontSize: 22, fontWeight: "bold", color: "white" },
-  menuButton: { position: "absolute", right: 20, top: 70, padding: 5 },
-  dropdown: {
-    position: "absolute",
-    right: 15,
-    top: 100,
-    backgroundColor: "white",
-    borderRadius: 8,
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    zIndex: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    position: "relative", // tambahkan ini
+    zIndex: 999, // tambahkan ini
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  title: { fontSize: 20, fontWeight: "bold", color: "white" },
+  menuButton: { padding: 5 },
+  dropdown: {
+    position: "absolute",
+    right: 15,
+    top: 85,
+    backgroundColor: "white",
+    borderRadius: 8,
+    elevation: 8,
+    zIndex: 9999,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
   },
   dropdownItem: {
     flexDirection: "row",

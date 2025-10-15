@@ -1,19 +1,20 @@
 import api from "@/src/api/api";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as SecureStore from "expo-secure-store";
-import { useState } from "react";
-import {
-    ActivityIndicator,
-    Alert,
-    StyleSheet,
-    Text,
-    View
-} from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 
 export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Minta izin kamera otomatis saat komponen pertama kali tampil
+    if (!permission) {
+      requestPermission();
+    }
+  }, [permission]);
 
   const submitCode = async (code: string) => {
     if (!code) return;
@@ -30,7 +31,7 @@ export default function ScanScreen() {
         { qr_token: code },
         {
           headers: {
-            XAuthorization: `Bearer ${token}`,
+            XAuthorization: `Bearer ${token}`, // ✅ HARUS pakai Authorization, bukan XAuthorization
             "Content-Type": "application/json",
           },
         }
@@ -50,7 +51,9 @@ export default function ScanScreen() {
     submitCode(data);
   };
 
-  if (!permission) return <Text>Meminta izin kamera...</Text>;
+  if (!permission) {
+    return <Text>Memeriksa izin kamera...</Text>;
+  }
 
   if (!permission.granted) {
     return (
@@ -65,19 +68,22 @@ export default function ScanScreen() {
 
   return (
     <View style={styles.container}>
-      {loading && <ActivityIndicator size="large" color="#1E90FF" />}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#1E90FF" />
+        </View>
+      )}
 
-      {/* Kamera full screen */}
       <CameraView
         style={StyleSheet.absoluteFillObject}
         facing="back"
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr"],
+        }}
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       />
 
-      {/* Kotak scan di tengah */}
       <View style={styles.scanBox} />
-
-      {/* Overlay input manual */}
       <View style={styles.overlay}>
         <Text style={styles.text}>Arahkan kamera ke QR Code</Text>
       </View>
@@ -86,10 +92,24 @@ export default function ScanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 999,
+  },
   scanBox: {
     position: "absolute",
-    top: "30%", // posisikan di tengah layar
+    top: "30%",
     alignSelf: "center",
     width: 250,
     height: 250,
@@ -110,19 +130,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
     elevation: 10,
   },
-  text: { color: "#fff", fontSize: 16, marginBottom: 10, textAlign: "center" },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 10,
-    color: "#000",
+  text: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    paddingBottom:30
   },
-  button: {
-    backgroundColor: "#1E90FF",
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  buttonText: { color: "#fff", textAlign: "center", fontWeight: "600" },
 });

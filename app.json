@@ -1,37 +1,55 @@
 {
   "expo": {
-    "name": "Absensi",
-    "slug": "Absensi",
-    "version": "1.0.0",
+    "name": "SIMBARU",
+    "slug": "simbaru",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "absensi",
+    "icon": "./assets/images/simbaru.png",
+    "scheme": "simbaru",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/simbaru.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chuenk.simbaru"
     },
     "android": {
+      "versionCode": 3,
+      "package": "com.chuenk.simbaru",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
+        "backgroundColor": "#E6F4FE",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.chuenk.Absensi"
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/simbaru.png"
     },
     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Aplikasi ini membutuhkan akses kamera untuk memindai QR Code",
+          "microphonePermission": "Diperlukan jika ingin merekam video"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/simbaru.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -48,7 +66,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "59307e7d-cd00-454c-8e81-515002b7d453"
+        "projectId": "0b851e8f-5727-4e8e-be5b-e953619ab847"
       }
     }
   }

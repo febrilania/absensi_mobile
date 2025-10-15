@@ -4,13 +4,15 @@ import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useState } from "react";
 import {
-    Alert,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function Code() {
@@ -69,40 +71,48 @@ export default function Code() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Modal
-        visible={visible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCancel}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        <View style={styles.centered}>
-          <View style={styles.modalBox}>
-            <Text style={styles.title}>Input Kode Manual</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Masukkan kode"
-              placeholderTextColor="#999"
-              value={manualCode}
-              onChangeText={setManualCode}
-            />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? "Mengirim..." : "Submit"}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: "#aaa", marginTop: 8 }]}
-              onPress={handleCancel}
-            >
-              <Text style={styles.buttonText}>Batal</Text>
-            </TouchableOpacity>
+        <Modal
+          visible={visible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleCancel}
+        >
+          <View style={styles.centered}>
+            <View style={styles.modalBox}>
+              <Text style={styles.title}>Input Kode Manual</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Masukkan kode"
+                placeholderTextColor="#999"
+                value={manualCode}
+                onChangeText={setManualCode}
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? "Mengirim..." : "Submit"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  { backgroundColor: "#aaa", marginTop: 8 },
+                ]}
+                onPress={handleCancel}
+              >
+                <Text style={styles.buttonText}>Batal</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </KeyboardAvoidingView>
     </View>
   );
 }
