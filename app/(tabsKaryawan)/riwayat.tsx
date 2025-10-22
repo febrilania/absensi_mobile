@@ -220,10 +220,13 @@ export default function Riwayat() {
 
                 <View style={styles.statBox}>
                   <Text style={styles.statText}>
-                    👨‍🎓 Hadir: {item.hadir}/{item.jumlah_mhs}
+                    👨‍🎓 Jumlah Mahasiswa: {item.jumlah_mhs}
                   </Text>
                   <Text style={styles.statText}>
-                    🚫 Tidak Hadir: {item.tidak_hadir}
+                    ✅ Hadir: {item.hadir}
+                  </Text>
+                  <Text style={styles.statText}>
+                    ❌ Tidak Hadir: {item.tidak_hadir}
                   </Text>
                 </View>
 
@@ -339,11 +342,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
     marginTop: 8,
+    flex: 1,
+    flexDirection:"row",
+    gap:10,
+    justifyContent:"center"
   },
   statText: {
     color: "#1E90FF",
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: 11,
   },
   catatanBox: {
     backgroundColor: "#FAFAFA",

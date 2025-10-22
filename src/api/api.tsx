@@ -2,12 +2,14 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 /**
- * ✅ Konfigurasi instance axios
+ * ✅ Konfigurasi instance axios utama
  */
 const api = axios.create({
   baseURL: "https://sim.peradaban.ac.id/wp-json/simbaru/v1",
   headers: { "Content-Type": "application/json" },
 });
+
+api.defaults.headers.common["Accept"] = "application/json";
 
 /**
  * ✅ Simpan token & waktu kedaluwarsa
@@ -21,7 +23,8 @@ export const saveToken = async (token: string, expiresIn: number) => {
 };
 
 /**
- * ✅ Ambil token dari SecureStore (dengan validasi waktu)
+ * ✅ Ambil token valid dari SecureStore
+ * Jika sudah expired → refresh otomatis
  */
 export const getValidToken = async (): Promise<string | null> => {
   const token = await SecureStore.getItemAsync("token");
@@ -32,12 +35,11 @@ export const getValidToken = async (): Promise<string | null> => {
   const expiresAt = new Date(expiresAtStr);
   const now = new Date();
 
-  // Kalau token belum expired, langsung pakai
   if (now < expiresAt) {
-    return token;
+    return token; // Masih valid
   }
 
-  // Kalau sudah expired → coba refresh
+  // Token expired → refresh otomatis
   return await refreshToken();
 };
 
@@ -53,14 +55,12 @@ export const refreshToken = async (): Promise<string | null> => {
       "https://sim.peradaban.ac.id/wp-json/simbaru/v1/refresh",
       {},
       {
-        headers: {
-          XAuthorization: `Bearer ${oldToken}`,
-        },
+        headers: { XAuthorization: `Bearer ${oldToken}` },
       }
     );
 
     const newToken: string | undefined = res.data?.token;
-    const expiresIn: number = res.data?.expires_in || 3600; // fallback 1 jam
+    const expiresIn: number = res.data?.expires_in || 3600;
 
     if (newToken) {
       await saveToken(newToken, expiresIn);
@@ -80,10 +80,10 @@ export const refreshToken = async (): Promise<string | null> => {
 };
 
 /**
- * ✅ Interceptor sebelum request → selalu pastikan token valid
+ * ✅ Interceptor: sebelum request → pastikan token valid
  */
 api.interceptors.request.use(async (config) => {
-  const token = await getValidToken(); // otomatis cek dan refresh
+  const token = await getValidToken();
   if (token) {
     config.headers.XAuthorization = `Bearer ${token}`;
   }
@@ -91,7 +91,7 @@ api.interceptors.request.use(async (config) => {
 });
 
 /**
- * ✅ Interceptor response → kalau 401, coba refresh sekali lagi
+ * ✅ Interceptor: tangani 401 → refresh lalu retry
  */
 api.interceptors.response.use(
   (response) => response,
@@ -104,9 +104,8 @@ api.interceptors.response.use(
       const newToken = await refreshToken();
       if (newToken) {
         originalRequest.headers.XAuthorization = `Bearer ${newToken}`;
-        return api(originalRequest); // ulang request pakai token baru
+        return api(originalRequest);
       } else {
-        // Refresh gagal → hapus token supaya login ulang
         await SecureStore.deleteItemAsync("token");
         await SecureStore.deleteItemAsync("expires_at");
         await SecureStore.deleteItemAsync("role");

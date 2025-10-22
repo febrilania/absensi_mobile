@@ -9,34 +9,41 @@ export default function Index() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    /**
-     * ✅ Fungsi utama: cek apakah user sudah login
-     * dan arahkan ke halaman sesuai role.
-     */
+    let isMounted = true; // mencegah navigasi dobel
+
     const checkLoginStatus = async () => {
       try {
         const token = await SecureStore.getItemAsync("token");
         const role = await SecureStore.getItemAsync("role");
         const expiresAt = await SecureStore.getItemAsync("expires_at");
 
-        // 🔍 Cek kalau token masih ada dan belum expired
-        if (token && role && expiresAt) {
-          const now = new Date();
-          const exp = new Date(expiresAt);
+        if (!token || !role || !expiresAt) {
+          if (isMounted) router.replace("/login");
+          return;
+        }
 
-          // Kalau token sudah expired → langsung refresh dulu
-          if (exp <= now) {
-            console.log("⚠️ Token kadaluarsa, coba refresh...");
-            const newToken = await refreshToken();
+        const now = new Date();
+        const exp = new Date(expiresAt);
 
-            // Kalau gagal refresh → arahkan ke login
-            if (!newToken) {
-              router.replace("/login");
-              return;
-            }
+        if (exp <= now) {
+          console.log("⚠️ Token expired, mencoba refresh...");
+          const newToken = await refreshToken();
+          if (!newToken) {
+            if (isMounted) router.replace("/login");
+            return;
           }
+        }
 
-          // ✅ Arahkan sesuai role
+        const validRoles = ["um_dosen", "um_mahasiswa", "um_karyawan"];
+        if (!validRoles.includes(role)) {
+          await SecureStore.deleteItemAsync("token");
+          await SecureStore.deleteItemAsync("expires_at");
+          await SecureStore.deleteItemAsync("role");
+          if (isMounted) router.replace("/login");
+          return;
+        }
+
+        if (isMounted) {
           if (role === "um_dosen") {
             router.replace("/(tabsDosen)/beranda");
           } else if (role === "um_mahasiswa") {
@@ -44,49 +51,22 @@ export default function Index() {
           } else {
             router.replace("/(tabsKaryawan)/beranda");
           }
-        } else {
-          router.replace("/login");
         }
-      } catch (error) {
-        console.error("❌ Gagal memeriksa token:", error);
-        router.replace("/login");
+      } catch (err) {
+        console.error("❌ Gagal memeriksa status login:", err);
+        if (isMounted) router.replace("/login");
       } finally {
         setChecking(false);
       }
     };
 
-    /**
-     * 🔁 Fungsi untuk cek waktu token & refresh otomatis
-     * setiap kali hampir habis (kurang dari 10 menit).
-     */
-    const checkTokenExpiry = async () => {
-      try {
-        const expiresAt = await SecureStore.getItemAsync("expires_at");
-        if (!expiresAt) return;
-
-        const diff = new Date(expiresAt).getTime() - Date.now();
-        // Kalau sisa waktu < 10 menit → refresh token
-        if (diff < 10 * 60 * 1000) {
-          console.log("⏳ Token hampir kadaluarsa, refresh otomatis...");
-          await refreshToken();
-        }
-      } catch (err) {
-        console.error("Gagal memeriksa kedaluwarsa token:", err);
-      }
-    };
-
-    // 🟢 Jalankan pengecekan login pertama kali
     checkLoginStatus();
 
-    // 🔂 Cek token tiap 1 menit
-    const interval = setInterval(checkTokenExpiry, 60 * 1000);
-
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  /**
-   * ⏳ Tampilkan indikator loading saat sedang cek login
-   */
   if (checking) {
     return (
       <View
