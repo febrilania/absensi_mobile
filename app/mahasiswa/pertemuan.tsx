@@ -4,15 +4,15 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -254,7 +254,7 @@ export default function Pertemuan() {
                         });
                       }}
                     >
-                      <Text style={styles.linkText}>Buka Link</Text>
+                      <Text style={styles.linkText}>Zoom Meeting</Text>
                     </TouchableOpacity>
                   ) : (
                     <Text style={styles.value}>-</Text>

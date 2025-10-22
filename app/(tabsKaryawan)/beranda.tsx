@@ -5,31 +5,19 @@ import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useRef, useState } from "react";
 import {
-  Alert,
-  Animated,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Animated,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
+// 🔹 Menu hanya UTS dan UAS
 const MENU_ITEMS = [
-  {
-    key: "jadwal",
-    label: "Jadwal Kuliah",
-    icon: "calendar-outline",
-    available: true,
-  },
-  {
-    key: "matkul",
-    label: "Mata Kuliah",
-    icon: "book-outline",
-    available: false,
-  },
-  { key: "krs", label: "KRS", icon: "clipboard-outline", available: false },
-  { key: "pkl", label: "PKL", icon: "construct-outline", available: false },
-  { key: "kkn", label: "KKN", icon: "people-outline", available: false },
+  { key: "uts", label: "UTS", icon: "school-outline" },
+  { key: "uas", label: "UAS", icon: "reader-outline" },
 ];
 
 export default function Beranda() {
@@ -37,7 +25,6 @@ export default function Beranda() {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  // 🔹 Animasi
   const headerAnim = useRef(new Animated.Value(-150)).current;
   const cardsAnim = useRef(MENU_ITEMS.map(() => new Animated.Value(0))).current;
   const welcomeAnim = useRef(new Animated.Value(0)).current;
@@ -82,11 +69,9 @@ export default function Beranda() {
     try {
       const token = await SecureStore.getItemAsync("token");
       if (!token) return;
-
       const response = await api.get("/me", {
         headers: { XAuthorization: `Bearer ${token}` },
       });
-
       if (response.data?.user) {
         setUser(response.data.user);
       }
@@ -103,11 +88,16 @@ export default function Beranda() {
   };
 
   const handleNavigate = (item: (typeof MENU_ITEMS)[0]) => {
-    if (item.available) {
-      if (item.key === "jadwal") router.push("/mahasiswa/jadwal");
-    } else {
-      Alert.alert("Coming Soon", "Menu ini masih dalam pengembangan.");
-    }
+    if (item.key === "uts") router.push("/karyawan/uts");
+    else if (item.key === "uas") router.push("/karyawan/uas");
+  };
+
+  const getRoleName = () => {
+    if (!user) return "Pengguna";
+    if (user.role === "karyawan") return "Karyawan";
+    if (user.role === "dosen") return "Dosen";
+    if (user.role === "mahasiswa") return "Mahasiswa";
+    return "Pengguna";
   };
 
   return (
@@ -157,7 +147,7 @@ export default function Beranda() {
           },
         ]}
       >
-        {/* Foto user atau icon default */}
+        {/* 🔹 Foto Profil atau Icon Default */}
         {user?.foto ? (
           <Image
             source={{ uri: user.foto }}
@@ -172,10 +162,12 @@ export default function Beranda() {
           <Text style={styles.welcomeText}>
             👋 Selamat datang,{" "}
             <Text style={{ fontWeight: "bold" }}>
-              {user?.nama || "Mahasiswa"}
+              {user?.nama || "Pengguna"}
             </Text>
           </Text>
-          <Text style={styles.roleText}>Anda login sebagai Mahasiswa</Text>
+          <Text style={styles.roleText}>
+            Anda login sebagai Karyawan
+          </Text>
         </View>
       </Animated.View>
 
@@ -188,7 +180,6 @@ export default function Beranda() {
               styles.card,
               {
                 opacity: cardsAnim[index],
-                backgroundColor: item.available ? "#fff" : "#ccc",
                 transform: [
                   {
                     translateY: cardsAnim[index].interpolate({
@@ -203,27 +194,10 @@ export default function Beranda() {
             <TouchableOpacity
               style={styles.cardInner}
               onPress={() => handleNavigate(item)}
-              activeOpacity={item.available ? 0.7 : 1}
+              activeOpacity={0.8}
             >
-              <Ionicons
-                name={item.icon as any}
-                size={28}
-                color={item.available ? "#1E90FF" : "#555"}
-              />
-              <Text
-                style={[
-                  styles.cardTitle,
-                  { color: item.available ? "#333" : "#555" },
-                ]}
-              >
-                {item.label}
-              </Text>
-
-              {!item.available && (
-                <View style={styles.overlay}>
-                  <Text style={styles.overlayText}>Coming Soon</Text>
-                </View>
-              )}
+              <Ionicons name={item.icon as any} size={30} color="#1E90FF" />
+              <Text style={styles.cardTitle}>{item.label}</Text>
             </TouchableOpacity>
           </Animated.View>
         ))}
@@ -330,23 +304,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cardInner: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    position: "relative",
+  cardInner: { alignItems: "center", justifyContent: "center" },
+  cardTitle: {
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
-  cardTitle: { marginTop: 8, fontSize: 16, fontWeight: "600" },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.25)",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  overlayText: { color: "#fff", fontWeight: "600" },
 });

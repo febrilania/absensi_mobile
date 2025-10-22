@@ -11,6 +11,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = {
   anchor: "(tabs)",
+  additionalAnchors: ["(tabsDosen)", "tabsKaryawan"],
 };
 
 export default function RootLayout() {
@@ -22,6 +23,9 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabsDosen)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabsKaryawan)" options={{ headerShown: false }} />
+
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}

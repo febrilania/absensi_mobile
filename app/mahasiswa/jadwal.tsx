@@ -92,12 +92,12 @@ export default function Jadwal() {
   };
 
   const days = [
+    { id: "6", label: "Sabtu" },
+    { id: "7", label: "Ahad" },
     { id: "1", label: "Senin" },
     { id: "2", label: "Selasa" },
     { id: "3", label: "Rabu" },
     { id: "4", label: "Kamis" },
-    { id: "6", label: "Sabtu" },
-    { id: "7", label: "Ahad" },
   ];
 
   const filteredJadwal = selectedDay
@@ -180,7 +180,7 @@ export default function Jadwal() {
                 style={styles.card}
                 onPress={() =>
                   router.push({
-                    pathname: "/pertemuan",
+                    pathname: "/mahasiswa/pertemuan",
                     params: {
                       jadwal: JSON.stringify(item),
                       kd_ajar: item.kd_ajar,

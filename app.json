@@ -2,7 +2,7 @@
   "expo": {
     "name": "SIMBARU",
     "slug": "simbaru",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/simbaru.png",
     "scheme": "simbaru",
@@ -18,7 +18,7 @@
       "bundleIdentifier": "com.chuenk.simbaru"
     },
     "android": {
-      "versionCode": 4,
+      "versionCode": 6,
       "package": "com.chuenk.simbaru",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/simbaru.png",

@@ -83,8 +83,8 @@ export default function ScanScreen() {
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       />
 
-      <View style={styles.scanBox} />
       <View style={styles.overlay}>
+        <View style={styles.scanBox} />
         <Text style={styles.text}>Arahkan kamera ke QR Code</Text>
       </View>
     </View>
@@ -108,32 +108,23 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
   scanBox: {
-    position: "absolute",
-    top: "30%",
-    alignSelf: "center",
     width: 250,
     height: 250,
     borderWidth: 3,
-    borderColor: "#1E90FF",
-    borderRadius: 12,
+    borderColor: "#00a3eeff",
+    borderRadius: 10,
     backgroundColor: "transparent",
-    zIndex: 5,
   },
   overlay: {
-    position: "absolute",
-    bottom: 100,
-    alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 15,
-    borderRadius: 8,
-    width: "90%",
-    zIndex: 10,
-    elevation: 10,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   text: {
     color: "#fff",
-    fontSize: 16,
-    textAlign: "center",
-    paddingBottom:30
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 20,
   },
 });

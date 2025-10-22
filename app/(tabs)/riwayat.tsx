@@ -179,7 +179,11 @@ export default function Riwayat() {
         ]}
       >
         {loading ? (
-          <ActivityIndicator size="large" color="#1E90FF" />
+          // ✅ Loading di tengah layar penuh
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color="#1E90FF" />
+            <Text style={{ marginTop: 8, color: "#555" }}>Memuat data...</Text>
+          </View>
         ) : (
           <FlatList
             data={riwayat}
@@ -199,11 +203,43 @@ export default function Riwayat() {
                 }}
               >
                 <View style={styles.card}>
+                  {/* Badge Status */}
+                  <View
+                    style={[
+                      styles.badge,
+                      item.status === 2
+                        ? { backgroundColor: "#4CAF50" } // Hadir - hijau
+                        : item.status === 3
+                        ? { backgroundColor: "#FF9800" } // Ijin - oranye
+                        : item.status === 4
+                        ? { backgroundColor: "#2196F3" } // Sakit - biru
+                        : item.status === 5
+                        ? { backgroundColor: "#9C27B0" } // Dispensasi - ungu
+                        : { backgroundColor: "#F44336" }, // Alpha - merah
+                    ]}
+                  >
+                    <Text style={styles.badgeText}>
+                      {getStatusLabel(item.status)}
+                    </Text>
+                  </View>
+
+                  {/* Isi card */}
                   <Text style={styles.makul}>{item.makul}</Text>
-                  <Text>Pertemuan: {item.pertemuan}</Text>
-                  <Text>Tanggal: {formatTanggal(item.tgl)}</Text>
-                  <Text>Dosen: {item.nmdosen}</Text>
-                  <Text>Status: {getStatusLabel(item.status)}</Text>
+
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Pertemuan</Text>
+                    <Text style={styles.value}>{item.pertemuan}</Text>
+                  </View>
+
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Tanggal</Text>
+                    <Text style={styles.value}>{formatTanggal(item.tgl)}</Text>
+                  </View>
+
+                  <View style={styles.infoRow}>
+                    <Text style={styles.label}>Dosen</Text>
+                    <Text style={styles.value}>{item.nmdosen}</Text>
+                  </View>
                 </View>
               </Animated.View>
             )}
@@ -234,8 +270,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    position: "relative", // tambahkan ini
-    zIndex: 999, // tambahkan ini
+    position: "relative",
+    zIndex: 999,
   },
 
   headerRow: {
@@ -272,14 +308,57 @@ const styles = StyleSheet.create({
   content: { flex: 1, padding: 20 },
   card: {
     backgroundColor: "#fff",
-    padding: 15,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     marginBottom: 12,
-    borderRadius: 8,
-    elevation: 2,
+    borderRadius: 10,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    position: "relative",
   },
   makul: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
+    color: "#1E90FF",
+    marginBottom: 10,
+    paddingRight: 80,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 3,
+  },
+  label: {
+    color: "#444",
+    fontWeight: "600",
+    width: 90,
+  },
+  value: {
+    flex: 1,
+    textAlign: "left",
+    color: "#333",
+  },
+  badge: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    alignSelf: "flex-end",
+  },
+  badgeText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+  // ✅ Style tambahan: loading di tengah
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
