@@ -97,7 +97,7 @@ export default function MengawasDetail() {
                     onPress: () => {
                       // 🔹 Balik ke hasil scan (bukan kamera)
                       router.replace({
-                        pathname: "/(tabsKaryawan)/scan",
+                        pathname: "/(tabsDosen)/scan",
                         params: {
                           qr_token: parsed.qr_token, // kirim token QR lama
                           refresh: "true", // sinyal untuk reload data

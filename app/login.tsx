@@ -1,4 +1,6 @@
 import api, { saveToken } from "@/src/api/api";
+import { getAppRole } from "@/src/utils/roleMapper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -38,27 +40,39 @@ export default function LoginScreen() {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      console.log("Response dari server:", response.data);
-
       const token = response.data?.token;
       const role = response.data?.user?.role;
       const expiresIn = response.data?.expires_in || 3600; // default 1 jam
 
       if (token && role) {
-        // ✅ Simpan token dan waktu kedaluwarsa via helper saveToken
+        const appRole = getAppRole(role);
+
+        if (appRole === "unknown") {
+          Alert.alert("Role tidak dikenali", "Hubungi administrator sistem.");
+          return;
+        }
+
+        // ✅ Simpan token, role, dan appRole di SecureStore & AsyncStorage
         await saveToken(token, expiresIn);
         await SecureStore.setItemAsync("role", role);
+        await SecureStore.setItemAsync("app_role", appRole);
+        await AsyncStorage.setItem("role", role);
+        await AsyncStorage.setItem("app_role", appRole);
 
         Alert.alert("Berhasil", "Login berhasil!");
 
-        // ✅ Arahkan ke halaman sesuai role
-        if (role === "um_dosen") {
-          router.replace("/(tabsDosen)/beranda");
-        } else if (role === "um_mahasiswa") {
-          router.replace("/(tabs)/beranda");
-        } else {
-          router.replace("/(tabsKaryawan)/beranda");
-        }
+        // ✅ Bersihkan seluruh stack sebelum pindah layout
+        router.dismissAll();
+
+        setTimeout(() => {
+          if (appRole === "dosen") {
+            router.replace("/(tabsDosen)/beranda");
+          } else if (appRole === "mahasiswa") {
+            router.replace("/(tabs)/beranda");
+          } else if (appRole === "karyawan") {
+            router.replace("/(tabsKaryawan)/beranda");
+          }
+        }, 100);
       } else {
         Alert.alert("Gagal", "Token atau role tidak ditemukan dari server.");
       }

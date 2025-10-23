@@ -1,5 +1,6 @@
 import api from "@/src/api/api";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { Stack, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -95,10 +96,31 @@ export default function Riwayat() {
   };
 
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync("token");
-    Alert.alert("Logout", "Berhasil logout!");
-    setShowMenu(false);
-    router.replace("/");
+    Alert.alert("Konfirmasi", "Yakin ingin logout?", [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Ya, Logout",
+        onPress: async () => {
+          try {
+            // 🔥 Hapus dari SecureStore
+            await SecureStore.deleteItemAsync("token");
+            await SecureStore.deleteItemAsync("expires_at");
+            await SecureStore.deleteItemAsync("role");
+
+            // 🔥 Hapus juga dari AsyncStorage (biar gak auto-restore)
+            await AsyncStorage.removeItem("token");
+            await AsyncStorage.removeItem("expires_at");
+            await AsyncStorage.removeItem("role");
+
+            Alert.alert("Logout", "Berhasil logout!");
+            router.replace("/login");
+          } catch (error) {
+            console.error("Gagal logout:", error);
+            Alert.alert("Error", "Gagal logout, coba lagi.");
+          }
+        },
+      },
+    ]);
   };
 
   // 🔹 Hari & Tanggal dalam Bahasa Indonesia
@@ -222,9 +244,7 @@ export default function Riwayat() {
                   <Text style={styles.statText}>
                     👨‍🎓 Jumlah Mahasiswa: {item.jumlah_mhs}
                   </Text>
-                  <Text style={styles.statText}>
-                    ✅ Hadir: {item.hadir}
-                  </Text>
+                  <Text style={styles.statText}>✅ Hadir: {item.hadir}</Text>
                   <Text style={styles.statText}>
                     ❌ Tidak Hadir: {item.tidak_hadir}
                   </Text>
@@ -343,9 +363,9 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 8,
     flex: 1,
-    flexDirection:"row",
-    gap:10,
-    justifyContent:"center"
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
   },
   statText: {
     color: "#1E90FF",

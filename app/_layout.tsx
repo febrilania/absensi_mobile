@@ -11,7 +11,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export const unstable_settings = {
   anchor: "(tabs)",
-  additionalAnchors: ["(tabsDosen)", "tabsKaryawan"],
+  additionalAnchors: ["(tabsDosen)", "(tabsKaryawan)"],
 };
 
 export default function RootLayout() {

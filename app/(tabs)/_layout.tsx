@@ -8,6 +8,7 @@ export default function Layout() {
 
   return (
     <Tabs
+      key="tabs"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,

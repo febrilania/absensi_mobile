@@ -1,5 +1,6 @@
 import api from "@/src/api/api";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useState } from "react";
@@ -45,7 +46,16 @@ export default function UAS() {
       );
 
       if (response.data.success) {
-        setJadwal(response.data.data || []);
+        const data = response.data.data || [];
+
+        // 🔹 Urutkan berdasarkan tanggal dan jam (ascending)
+        const sorted = [...data].sort((a, b) => {
+          const dateA = new Date(`${a.tanggal} ${a.jam}`);
+          const dateB = new Date(`${b.tanggal} ${b.jam}`);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+        setJadwal(sorted);
       } else {
         Alert.alert("Error", response.data.message || "Gagal mengambil data");
       }
@@ -58,10 +68,46 @@ export default function UAS() {
   };
 
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync("token");
-    Alert.alert("Logout", "Berhasil logout!");
-    setShowMenu(false);
-    router.replace("/");
+    Alert.alert("Konfirmasi", "Yakin ingin logout?", [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Ya, Logout",
+        onPress: async () => {
+          try {
+            // 🔥 Hapus dari SecureStore
+            await SecureStore.deleteItemAsync("token");
+            await SecureStore.deleteItemAsync("expires_at");
+            await SecureStore.deleteItemAsync("role");
+
+            // 🔥 Hapus juga dari AsyncStorage (biar gak auto-restore)
+            await AsyncStorage.removeItem("token");
+            await AsyncStorage.removeItem("expires_at");
+            await AsyncStorage.removeItem("role");
+
+            Alert.alert("Logout", "Berhasil logout!");
+            router.replace("/login");
+          } catch (error) {
+            console.error("Gagal logout:", error);
+            Alert.alert("Error", "Gagal logout, coba lagi.");
+          }
+        },
+      },
+    ]);
+  };
+
+  const formatTanggalIndo = (tanggal: string) => {
+    try {
+      const date = new Date(tanggal);
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      };
+      return new Intl.DateTimeFormat("id-ID", options).format(date);
+    } catch (e) {
+      return tanggal;
+    }
   };
 
   const filterByHari = (hari: number) => {
@@ -87,10 +133,8 @@ export default function UAS() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-
-      {/* UI dasar tetap tampil dari awal */}
       <View style={styles.container}>
-        {/* HEADER */}
+        {/* === HEADER === */}
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -121,7 +165,7 @@ export default function UAS() {
           )}
         </View>
 
-        {/* FILTER HARI */}
+        {/* === FILTER HARI === */}
         <Text style={styles.subTitle}>Pilih Hari Ujian</Text>
         <View style={styles.filterWrapper}>
           {barisHari.map((row, i) => (
@@ -149,7 +193,7 @@ export default function UAS() {
           ))}
         </View>
 
-        {/* LOADING SPINNER */}
+        {/* === LOADING === */}
         {loading && (
           <View style={styles.center}>
             <ActivityIndicator size="large" color="#1E90FF" />
@@ -157,7 +201,7 @@ export default function UAS() {
           </View>
         )}
 
-        {/* KONTEN */}
+        {/* === KONTEN === */}
         {!loading && (
           <>
             {selectedHari === null ? (
@@ -182,7 +226,9 @@ export default function UAS() {
                     <Text style={styles.matkul}>{item.mata_kuliah}</Text>
                     <View style={styles.rowData}>
                       <Text style={styles.label}>Tanggal</Text>
-                      <Text style={styles.value}>{item.tanggal}</Text>
+                      <Text style={styles.value}>
+                        {formatTanggalIndo(item.tanggal)}
+                      </Text>
                     </View>
                     <View style={styles.rowData}>
                       <Text style={styles.label}>Jam</Text>

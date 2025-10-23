@@ -112,7 +112,7 @@ export default function Code() {
       if (response.data.success) {
         response.data.status_ujian = item.status_ujian;
         router.push({
-          pathname: "/karyawan/mengawas-detail",
+          pathname: "/dosen/mengawas-detail",
           params: { data: JSON.stringify(response.data) },
         });
       } else {

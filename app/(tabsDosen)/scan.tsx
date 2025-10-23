@@ -1,6 +1,6 @@
 import api from "@/src/api/api";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -23,7 +23,10 @@ export default function Scan() {
   const [qrToken, setQrToken] = useState("");
   const router = useRouter();
 
-  // === Fungsi ambil jadwal dari server ===
+  // 🔹 Ambil parameter dari navigasi (jika balik dari detail)
+  const { refresh, qr_token, stayOnResult } = useLocalSearchParams();
+
+  // === Ambil jadwal dari server ===
   const fetchJadwal = async (qr_data?: string) => {
     try {
       setLoading(true);
@@ -60,16 +63,32 @@ export default function Scan() {
     }
   };
 
-  // === Refresh otomatis setiap kali halaman Scan dibuka lagi ===
+  // === Auto refresh kalau balik dari detail ujian ===
   useFocusEffect(
     useCallback(() => {
-      if (qrToken) {
-        fetchJadwal(); // 🔹 refresh otomatis
+      if (refresh === "true" && (qr_token || qrToken)) {
+        const tokenString = Array.isArray(qr_token) ? qr_token[0] : qr_token;
+        const finalToken =
+          typeof tokenString === "string" ? tokenString : qrToken;
+
+        if (finalToken) {
+          setScanned(true);
+          fetchJadwal(finalToken);
+        }
       }
-    }, [qrToken])
+    }, [refresh, qr_token, qrToken])
   );
 
-  // === Minta izin kamera ===
+  // === Jalankan jika user baru kembali dari detail dengan stayOnResult ===
+  useEffect(() => {
+    if (stayOnResult === "true") {
+      setScanned(true);
+      setQrToken(qr_token as string);
+      fetchJadwal(qr_token as string);
+    }
+  }, [stayOnResult, qr_token]);
+
+  // === Minta izin kamera pertama kali ===
   useEffect(() => {
     if (!permission) {
       requestPermission();
@@ -94,7 +113,7 @@ export default function Scan() {
     setLoading(false);
   };
 
-  // === Klik card untuk ke halaman detail ===
+  // === Klik card jadwal untuk masuk ke halaman detail ===
   const handleCardPress = async (item: any) => {
     try {
       setLoading(true);
@@ -119,11 +138,18 @@ export default function Scan() {
       );
 
       if (response.data.success) {
+        // 🔹 Gabungkan data response dan status ujian ke satu objek
+        const payload = {
+          ...response.data,
+          status_ujian: item.status_ujian,
+          qr_token: qrToken, // penting untuk balik ke hasil scan
+        };
+
         router.push({
-          pathname: "/karyawan/mengawas-detail",
+          pathname: "/dosen/mengawas-detail",
           params: {
-            data: JSON.stringify(response.data),
-            status_ujian: item.status_ujian,
+            data: JSON.stringify(payload),
+            source: "scan",
           },
         });
       } else {
@@ -142,7 +168,7 @@ export default function Scan() {
     }
   };
 
-  // === Tampilan izin kamera belum aktif ===
+  // === Jika izin kamera belum didapat ===
   if (!permission) {
     return (
       <View style={styles.center}>
@@ -168,6 +194,7 @@ export default function Scan() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#E8F1FF" }}>
       {!scanned ? (
+        // 🔹 Tampilan kamera QR scanner
         <CameraView
           style={{ flex: 1 }}
           facing="back"
@@ -180,15 +207,14 @@ export default function Scan() {
           </View>
         </CameraView>
       ) : (
+        // 🔹 Tampilan daftar jadwal setelah QR berhasil discan
         <View style={styles.container}>
           <Text style={styles.title}>📋 Jadwal Mengawas</Text>
 
           {loading && <ActivityIndicator size="large" color="#1E90FF" />}
 
           <ScrollView
-            contentContainerStyle={{
-              paddingBottom: 40,
-            }}
+            contentContainerStyle={{ paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
             {jadwal.length === 0 && !loading ? (
@@ -241,16 +267,16 @@ export default function Scan() {
                     </View>
                   </TouchableOpacity>
                 ))}
-
-                {/* Tombol Scan Ulang di bawah list */}
-                <TouchableOpacity
-                  style={[styles.button, { marginTop: 10, marginBottom: 40 }]}
-                  onPress={() => setScanned(false)}
-                >
-                  <Text style={styles.buttonText}>🔄 Scan Ulang</Text>
-                </TouchableOpacity>
               </>
             )}
+
+            {/* 🔹 Tombol Scan Ulang SELALU tampil */}
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 20, marginBottom: 40 }]}
+              onPress={() => setScanned(false)}
+            >
+              <Text style={styles.buttonText}>🔄 Scan Ulang</Text>
+            </TouchableOpacity>
           </ScrollView>
         </View>
       )}
