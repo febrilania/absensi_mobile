@@ -30,76 +30,91 @@ export default function Pertemuan() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <Header title="Pertemuan" showBack  />
+      <Header title="📘 Pertemuan" showBack />
 
       <View style={styles.container}>
-        {/* 🔹 Informasi Jadwal Kuliah */}
-        {dataJadwal && (
-          <View style={styles.jadwalInfoCard}>
-            <Text style={styles.jadwalMakul}>{dataJadwal.makul}</Text>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Dosen</Text>
-              <Text style={styles.value}>{dataJadwal.nmdosen}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Kelas</Text>
-              <Text style={styles.value}>{dataJadwal.nm_kelas}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Jam</Text>
-              <Text style={styles.value}>
-                {dataJadwal.jam_d} - {dataJadwal.jam_s}
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Ruang</Text>
-              <Text style={styles.value}>{dataJadwal.ruang}</Text>
-            </View>
+        {/* 🔹 Loading Spinner */}
+        {loading ? (
+          <View style={styles.fullCenter}>
+            <ActivityIndicator size="large" color="#1E90FF" />
+            <Text style={{ marginTop: 8, color: "#555" }}>
+              Memuat data pertemuan...
+            </Text>
           </View>
-        )}
+        ) : (
+          <>
+            {/* 🔹 Informasi Jadwal Kuliah */}
+            {dataJadwal && (
+              <View style={styles.jadwalInfoCard}>
+                <Text style={styles.jadwalMakul}>{dataJadwal.makul}</Text>
 
-        {/* 🔹 Daftar Pertemuan */}
-        <ScrollView
-          style={styles.scrollArea}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => {
-                setRefreshing(true);
-                fetchPertemuan();
-              }}
-            />
-          }
-        >
-          {loading ? (
-            <ActivityIndicator
-              size="large"
-              color="#1E90FF"
-              style={{ marginTop: 40 }}
-            />
-          ) : pertemuan.length > 0 ? (
-            pertemuan.map((item) => (
-              <PertemuanCard
-                key={item.id_token ?? Math.random().toString()}
-                item={{ ...item, kd_ajar: kd_ajar as string }}
-              />
-            ))
-          ) : (
-            <Text style={styles.noData}>Tidak ada data pertemuan</Text>
-          )}
-        </ScrollView>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Dosen</Text>
+                  <Text style={styles.value}>{dataJadwal.nmdosen}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Kelas</Text>
+                  <Text style={styles.value}>{dataJadwal.nm_kelas}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Jam</Text>
+                  <Text style={styles.value}>
+                    {dataJadwal.jam_d} - {dataJadwal.jam_s}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>Ruang</Text>
+                  <Text style={styles.value}>{dataJadwal.ruang}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* 🔹 Daftar Pertemuan */}
+            <ScrollView
+              style={styles.scrollArea}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={() => {
+                    setRefreshing(true);
+                    fetchPertemuan();
+                  }}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+            >
+              {pertemuan.length > 0 ? (
+                pertemuan.map((item) => (
+                  <PertemuanCard
+                    key={item.id_token ?? Math.random().toString()}
+                    item={{ ...item, kd_ajar: kd_ajar as string }}
+                  />
+                ))
+              ) : (
+                <Text style={styles.noData}>Tidak ada data pertemuan.</Text>
+              )}
+            </ScrollView>
+          </>
+        )}
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#E8F1FF", paddingBottom:20},
+  container: { flex: 1, backgroundColor: "#E8F1FF", paddingBottom: 20 },
+
+  // 🔹 Spinner Full Center
+  fullCenter: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E8F1FF",
+  },
 
   // 🔹 Kartu informasi jadwal
   jadwalInfoCard: {
@@ -117,7 +132,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#1E90FF40",
   },
-
   jadwalMakul: {
     fontSize: 18,
     fontWeight: "700",
@@ -125,7 +139,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",

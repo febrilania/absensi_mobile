@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "600",
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop:10,
   },
   row: { flexDirection: "row", justifyContent: "center", marginVertical: 4 },
   filterButton: {

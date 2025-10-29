@@ -6,7 +6,7 @@ import { Stack } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
   View,
@@ -18,41 +18,60 @@ export default function Jadwal() {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
+      <Header title="📅 Jadwal Kuliah" showBack />
+
       <View style={styles.container}>
-        {/* 🔹 Header Global */}
-        <Header title="Jadwal Kuliah" showBack />
-
-        {/* 🔹 Filter Hari */}
-        <HariFilter
-          selectedHari={selectedDay ? parseInt(selectedDay) : null}
-          onSelect={(hari) => setSelectedDay(String(hari))}
-        />
-
-        {/* 🔹 Daftar Jadwal */}
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {loading ? (
+        {loading ? (
+          // 🔹 Spinner konsisten di tengah
+          <View style={styles.fullCenter}>
             <ActivityIndicator size="large" color="#1E90FF" />
-          ) : filteredJadwal && filteredJadwal.length > 0 ? (
-            filteredJadwal
-              .filter((item) => item) // 🧱 pastikan gak undefined
-              .map((item, i) => <JadwalCard key={item?.id ?? i} item={item} />)
-          ) : selectedDay ? (
-            <Text style={styles.noData}>Tidak ada jadwal hari ini</Text>
-          ) : (
-            <Text style={styles.noData}>Pilih hari terlebih dahulu</Text>
-          )}
-        </ScrollView>
+            <Text style={{ marginTop: 8, color: "#555" }}>
+              Memuat jadwal kuliah...
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* 🔹 Filter hari */}
+            <HariFilter
+              selectedHari={selectedDay ? parseInt(selectedDay) : null}
+              onSelect={(hari) => setSelectedDay(String(hari))}
+            />
+
+            {/* 🔹 Kondisi data */}
+            {selectedDay === null ? (
+              <View style={styles.fullCenter}>
+                <Text style={{ color: "#555" }}>
+                  Silakan pilih hari terlebih dahulu.
+                </Text>
+              </View>
+            ) : filteredJadwal.length === 0 ? (
+              <View style={styles.fullCenter}>
+                <Text style={{ color: "#555" }}>
+                  Tidak ada jadwal di hari ini.
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={filteredJadwal}
+                keyExtractor={(item, i) => item?.id?.toString() ?? i.toString()}
+                contentContainerStyle={{ padding: 16, paddingBottom: 30 }}
+                renderItem={({ item }) => <JadwalCard item={item} />}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </>
+        )}
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#E8F1FF", paddingBottom:30 },
-  noData: {
-    textAlign: "center",
-    marginTop: 40,
-    color: "#555",
-    fontSize: 15,
+  container: { flex: 1, backgroundColor: "#E8F1FF" },
+  fullCenter: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E8F1FF",
   },
 });
