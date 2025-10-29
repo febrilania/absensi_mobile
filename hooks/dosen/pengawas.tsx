@@ -1,7 +1,7 @@
 import { getPengawasData, postMengawas } from "@/src/api/dosen/pengawas";
+import { storage } from "@/src/utils/storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 
@@ -26,7 +26,7 @@ export function usePengawas() {
   const fetchPengawas = async (kode: string) => {
     try {
       setLoading(true);
-      const token = await SecureStore.getItemAsync("token");
+      const token = await storage.getItem("token");
       if (!token) {
         Alert.alert("Error", "Token tidak ditemukan, silakan login ulang.");
         return;
@@ -62,7 +62,7 @@ export function usePengawas() {
   const handleCardPress = async (item: any) => {
     try {
       setLoading(true);
-      const token = await SecureStore.getItemAsync("token");
+      const token = await storage.getItem("token");
       if (!token) {
         Alert.alert("Error", "Token tidak ditemukan, silakan login ulang.");
         return;

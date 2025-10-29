@@ -1,10 +1,10 @@
+import { confirmDialog, showAlert } from "@/src/utils/alert"; // ✅ import
+import { storage } from "@/src/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import React, { useState } from "react";
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -12,11 +12,10 @@ import {
   View,
 } from "react-native";
 
-// 🧩 Definisi tipe untuk props
 interface HeaderProps {
-  title?: string; // Judul halaman (optional, default: "Halaman")
-  showBack?: boolean; // Apakah tampil tombol kembali
-  onBack?: () => void; // Fungsi ketika tombol back ditekan
+  title?: string;
+  showBack?: boolean;
+  onBack?: () => void;
 }
 
 export default function Header({
@@ -24,42 +23,41 @@ export default function Header({
   showBack = false,
   onBack,
 }: HeaderProps) {
-  const [showMenu, setShowMenu] = useState<boolean>(false);
+  const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
 
-  // 🔹 Fungsi logout
+  // 🔹 Logout universal
   const handleLogout = async () => {
-    Alert.alert("Konfirmasi", "Yakin ingin logout?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Ya, Logout",
-        onPress: async () => {
-          try {
-            await SecureStore.deleteItemAsync("token");
-            await SecureStore.deleteItemAsync("expires_at");
-            await SecureStore.deleteItemAsync("role");
-            await AsyncStorage.multiRemove(["token", "expires_at", "role"]);
+    const confirm = await confirmDialog("Konfirmasi", "Yakin ingin logout?");
+    if (!confirm) return;
 
-            Alert.alert("Logout", "Berhasil logout!");
-            router.replace("/login");
-          } catch (error) {
-            console.error("Gagal logout:", error);
-            Alert.alert("Error", "Gagal logout, coba lagi.");
-          }
-        },
-      },
-    ]);
+    try {
+      await storage.deleteItem("token");
+      await storage.deleteItem("expires_at");
+      await storage.deleteItem("role");
+      await storage.deleteItem("app_role");
+      await AsyncStorage.multiRemove([
+        "token",
+        "expires_at",
+        "role",
+        "app_role",
+      ]);
+
+      showAlert("Logout", "Berhasil logout!");
+      router.replace("/login");
+    } catch (error) {
+      console.error("Gagal logout:", error);
+      showAlert("Error", "Gagal logout, coba lagi.");
+    }
   };
 
-  // 🔙 Fungsi back otomatis (kalau tidak ada halaman sebelumnya → ke beranda)
   const handleGoBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
+    if (onBack) onBack();
+    else {
       try {
-        router.back(); // balik ke halaman sebelumnya
+        router.back();
       } catch {
-        router.replace("/beranda"); // kalau gak bisa, balik ke beranda
+        router.replace("/beranda");
       }
     }
   };
@@ -67,19 +65,16 @@ export default function Header({
   return (
     <View style={styles.header}>
       <View style={styles.headerRow}>
-        {/* 🔙 Tombol Back (opsional) */}
         {showBack ? (
           <Pressable onPress={handleGoBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </Pressable>
         ) : (
-          <View style={{ width: 24 }} /> // biar layout tetap seimbang
+          <View style={{ width: 24 }} />
         )}
 
-        {/* 🧾 Judul */}
         <Text style={styles.title}>{title}</Text>
 
-        {/* ⚙️ Tombol menu (⋮) */}
         <Pressable
           onPress={() => setShowMenu(!showMenu)}
           style={styles.menuButton}
@@ -88,7 +83,6 @@ export default function Header({
         </Pressable>
       </View>
 
-      {/* 🔽 Dropdown menu logout */}
       {showMenu && (
         <View style={styles.dropdown}>
           <TouchableOpacity onPress={handleLogout} style={styles.dropdownItem}>
@@ -125,7 +119,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "white",
-    textAlign: "left",
     flex: 1,
   },
   menuButton: { paddingHorizontal: 15 },
@@ -137,9 +130,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 8,
     zIndex: 9999,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
   },
   dropdownItem: {
     flexDirection: "row",

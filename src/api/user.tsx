@@ -1,8 +1,8 @@
 import api from "@/src/api/api";
-import * as SecureStore from "expo-secure-store";
+import { storage } from "../utils/storage";
 
 export const getUserData = async () => {
-  const token = await SecureStore.getItemAsync("token");
+  const token = await storage.getItem("token");
   if (!token) throw new Error("Token tidak ditemukan");
 
   const response = await api.get("/me", {

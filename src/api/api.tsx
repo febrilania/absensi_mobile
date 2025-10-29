@@ -1,5 +1,5 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
+import { storage } from "../utils/storage";
 
 /**
  * ✅ Konfigurasi instance axios utama
@@ -15,31 +15,32 @@ api.defaults.headers.common["Accept"] = "application/json";
  * ✅ Simpan token & waktu kedaluwarsa
  */
 export const saveToken = async (token: string, expiresIn: number) => {
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + expiresIn * 1000); // detik → milidetik
+  const now = Date.now();
+  const expiresAt = now + expiresIn * 1000; // detik → milidetik
 
-  await SecureStore.setItemAsync("token", token);
-  await SecureStore.setItemAsync("expires_at", expiresAt.toISOString());
+  await storage.setItem("token", token);
+  await storage.setItem("expires_at", expiresAt.toString());
 };
 
 /**
- * ✅ Ambil token valid dari SecureStore
- * Jika sudah expired → refresh otomatis
+ * ✅ Ambil token valid
+ * Jika expired → refresh otomatis
  */
 export const getValidToken = async (): Promise<string | null> => {
-  const token = await SecureStore.getItemAsync("token");
-  const expiresAtStr = await SecureStore.getItemAsync("expires_at");
+  const token = await storage.getItem("token");
+  const expiresAtStr = await storage.getItem("expires_at");
 
   if (!token || !expiresAtStr) return null;
 
-  const expiresAt = new Date(expiresAtStr);
-  const now = new Date();
+  const now = Date.now();
+  const expiresAt = parseInt(expiresAtStr);
 
+  // Jika belum expired, pakai token lama
   if (now < expiresAt) {
-    return token; // Masih valid
+    return token;
   }
 
-  // Token expired → refresh otomatis
+  // Jika expired → refresh otomatis
   return await refreshToken();
 };
 
@@ -48,15 +49,13 @@ export const getValidToken = async (): Promise<string | null> => {
  */
 export const refreshToken = async (): Promise<string | null> => {
   try {
-    const oldToken = await SecureStore.getItemAsync("token");
+    const oldToken = await storage.getItem("token");
     if (!oldToken) return null;
 
     const res = await axios.post(
       "https://sim.peradaban.ac.id/wp-json/simbaru/v1/refresh",
       {},
-      {
-        headers: { XAuthorization: `Bearer ${oldToken}` },
-      }
+      { headers: { XAuthorization: `Bearer ${oldToken}` } }
     );
 
     const newToken: string | undefined = res.data?.token;
@@ -64,7 +63,7 @@ export const refreshToken = async (): Promise<string | null> => {
 
     if (newToken) {
       await saveToken(newToken, expiresIn);
-      api.defaults.headers.XAuthorization = `Bearer ${newToken}`;
+      api.defaults.headers.common["XAuthorization"] = `Bearer ${newToken}`;
       console.log("✅ Token diperbarui otomatis");
       return newToken;
     }
@@ -72,9 +71,9 @@ export const refreshToken = async (): Promise<string | null> => {
     return null;
   } catch (err) {
     console.error("❌ Gagal refresh token:", err);
-    await SecureStore.deleteItemAsync("token");
-    await SecureStore.deleteItemAsync("expires_at");
-    await SecureStore.deleteItemAsync("role");
+    await storage.deleteItem("token");
+    await storage.deleteItem("expires_at");
+    await storage.deleteItem("role");
     return null;
   }
 };
@@ -85,7 +84,7 @@ export const refreshToken = async (): Promise<string | null> => {
 api.interceptors.request.use(async (config) => {
   const token = await getValidToken();
   if (token) {
-    config.headers.XAuthorization = `Bearer ${token}`;
+    config.headers["XAuthorization"] = `Bearer ${token}`;
   }
   return config;
 });
@@ -103,12 +102,12 @@ api.interceptors.response.use(
 
       const newToken = await refreshToken();
       if (newToken) {
-        originalRequest.headers.XAuthorization = `Bearer ${newToken}`;
+        originalRequest.headers["XAuthorization"] = `Bearer ${newToken}`;
         return api(originalRequest);
       } else {
-        await SecureStore.deleteItemAsync("token");
-        await SecureStore.deleteItemAsync("expires_at");
-        await SecureStore.deleteItemAsync("role");
+        await storage.deleteItem("token");
+        await storage.deleteItem("expires_at");
+        await storage.deleteItem("role");
       }
     }
 

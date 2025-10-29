@@ -1,4 +1,4 @@
-import * as SecureStore from "expo-secure-store";
+import { storage } from "../utils/storage";
 import api from "./api";
 
 /**
@@ -6,7 +6,7 @@ import api from "./api";
  * @param ujian 1 = UTS, 2 = UAS
  */
 export async function getJadwalUjian(ujian: number) {
-  const token = await SecureStore.getItemAsync("token");
+  const token = await storage.getItem("token");
   if (!token) throw new Error("Token tidak ditemukan");
 
   const res = await api.post(

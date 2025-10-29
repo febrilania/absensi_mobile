@@ -1,9 +1,9 @@
 import api, { saveToken } from "@/src/api/api";
 import { getAppRole } from "@/src/utils/roleMapper";
+import { storage } from "@/src/utils/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -54,8 +54,8 @@ export default function LoginScreen() {
 
         // ✅ Simpan token, role, dan appRole di SecureStore & AsyncStorage
         await saveToken(token, expiresIn);
-        await SecureStore.setItemAsync("role", role);
-        await SecureStore.setItemAsync("app_role", appRole);
+        await storage.setItem("role", role);
+        await storage.setItem("app_role", appRole);
         await AsyncStorage.setItem("role", role);
         await AsyncStorage.setItem("app_role", appRole);
 

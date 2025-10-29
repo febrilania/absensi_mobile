@@ -1,6 +1,6 @@
 import { getJadwalPengawas, postDetailMengawas } from "@/src/api/dosen/pengawasScan";
+import { storage } from "@/src/utils/storage";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
 
@@ -15,7 +15,7 @@ export function useScanMengawas() {
   const fetchJadwal = useCallback(async (kode: string) => {
     try {
       setLoading(true);
-      const token = await SecureStore.getItemAsync("token");
+      const token = await storage.getItem("token");
       if (!token) {
         Alert.alert("Error", "Token tidak ditemukan. Silakan login ulang.");
         return;
@@ -37,7 +37,7 @@ export function useScanMengawas() {
     async (item: any) => {
       try {
         setLoading(true);
-        const token = await SecureStore.getItemAsync("token");
+        const token = await storage.getItem("token");
         if (!token) {
           Alert.alert("Error", "Token tidak ditemukan.");
           return;

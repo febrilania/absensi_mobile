@@ -1,6 +1,6 @@
 import api from "@/src/api/api";
 import { getAppRole } from "@/src/utils/roleMapper";
-import * as SecureStore from "expo-secure-store";
+import { storage } from "@/src/utils/storage";
 import { useEffect, useState } from "react";
 
 export function useUser() {
@@ -13,7 +13,7 @@ export function useUser() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = await SecureStore.getItemAsync("token");
+        const token = await storage.getItem("token");
         if (!token) return;
 
         const response = await api.get("/me", {
