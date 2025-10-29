@@ -70,7 +70,7 @@ export default function LoginScreen() {
           } else if (appRole === "mahasiswa") {
             router.replace("/(tabs)/beranda");
           } else if (appRole === "karyawan") {
-            router.replace("/(tabsKaryawan)/beranda");
+            router.replace("/(tabsKaryawan)/beranda")
           }
         }, 100);
       } else {

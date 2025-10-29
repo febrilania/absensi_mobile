@@ -1,10 +1,7 @@
-import api from "@/src/api/api";
-import { useFocusEffect } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import { usePresensiManual } from "@/hooks/mahasiswa/presensiCode";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -12,14 +9,14 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 export default function Code() {
   const [visible, setVisible] = useState(false);
   const [manualCode, setManualCode] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { loading, submitManual } = usePresensiManual();
 
   // Modal otomatis muncul saat tab Code difokuskan
   useFocusEffect(
@@ -30,43 +27,17 @@ export default function Code() {
   );
 
   const handleSubmit = async () => {
-    if (!manualCode) {
-      Alert.alert("Error", "Kode tidak boleh kosong");
-      return;
-    }
-    try {
-      setLoading(true);
-      const token = await SecureStore.getItemAsync("token");
-      if (!token) {
-        Alert.alert("Error", "Token tidak ditemukan, silakan login ulang.");
-        return;
-      }
-
-      const response = await api.post(
-        "/presensi/scan",
-        { qr_token: manualCode },
-        {
-          headers: {
-            XAuthorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      Alert.alert("Berhasil", response.data?.message || "Presensi berhasil!");
+    const success = await submitManual(manualCode);
+    if (success) {
       setVisible(false);
       setManualCode("");
-      router.replace("/beranda"); // ✅ setelah submit sukses, balik ke beranda
-    } catch (error: any) {
-      Alert.alert("Gagal", error.response?.data?.message || "Presensi gagal.");
-    } finally {
-      setLoading(false);
+      router.replace("/beranda");
     }
   };
 
   const handleCancel = () => {
     setVisible(false);
-    router.replace("/beranda"); // ✅ kalau batal, langsung redirect ke beranda
+    router.replace("/beranda");
   };
 
   return (
@@ -77,7 +48,7 @@ export default function Code() {
       >
         <Modal
           visible={visible}
-          transparent={true}
+          transparent
           animationType="fade"
           onRequestClose={handleCancel}
         >
@@ -92,7 +63,7 @@ export default function Code() {
                 onChangeText={setManualCode}
               />
               <TouchableOpacity
-                style={styles.button}
+                style={[styles.button, loading && { opacity: 0.7 }]}
                 onPress={handleSubmit}
                 disabled={loading}
               >
