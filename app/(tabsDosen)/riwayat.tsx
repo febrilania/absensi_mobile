@@ -1,7 +1,6 @@
 import RiwayatCard from "@/components/dosen/riwayatCard";
 import Header from "@/components/header";
-import { useRiwayatMengawas } from "@/hooks/dosen/riwayatMengawas";
-import { Stack } from "expo-router";
+import { useRiwayatMengawas } from "@/hooks/karyawan/riwayatMengawas";
 import React, { useEffect } from "react";
 import {
   ActivityIndicator,
@@ -11,9 +10,7 @@ import {
   Text,
   View,
 } from "react-native";
-import {
-  useSafeAreaInsets
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function RiwayatDosen() {
   const { riwayat, loading, refreshing, fetchRiwayat, onRefresh } =
@@ -27,11 +24,10 @@ export default function RiwayatDosen() {
   return (
     <>
       <Header title="Riwayat Mengawas" />
-      <View style={styles.content}>
-        <Stack.Screen options={{ headerShown: false }} />
-
+      <View style={styles.container}>
         {loading ? (
-          <View style={styles.center}>
+          // 🔹 Spinner sama seperti halaman Home
+          <View style={styles.fullCenter}>
             <ActivityIndicator size="large" color="#1E90FF" />
             <Text style={{ marginTop: 8, color: "#555" }}>Memuat data...</Text>
           </View>
@@ -48,7 +44,7 @@ export default function RiwayatDosen() {
               flexGrow: 1,
             }}
             ListEmptyComponent={
-              <View style={styles.center}>
+              <View style={styles.fullCenter}>
                 <Text style={{ color: "#555", marginTop: 30 }}>
                   Belum ada riwayat mengawas.
                 </Text>
@@ -63,6 +59,14 @@ export default function RiwayatDosen() {
 }
 
 const styles = StyleSheet.create({
-  content: { flex: 1, backgroundColor: "#E8F1FF" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: {
+    flex: 1,
+    backgroundColor: "#E8F1FF",
+  },
+  fullCenter: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E8F1FF", // biar seragam kaya Home
+  },
 });

@@ -1,10 +1,11 @@
-import { confirmDialog, showAlert } from "@/src/utils/alert"; // ✅ import
 import { storage } from "@/src/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -28,27 +29,38 @@ export default function Header({
 
   // 🔹 Logout universal
   const handleLogout = async () => {
-    const confirm = await confirmDialog("Konfirmasi", "Yakin ingin logout?");
-    if (!confirm) return;
-
-    try {
+    if (Platform.OS === "web") {
+      // Untuk web (tanpa Alert)
       await storage.deleteItem("token");
       await storage.deleteItem("expires_at");
       await storage.deleteItem("role");
-      await storage.deleteItem("app_role");
-      await AsyncStorage.multiRemove([
-        "token",
-        "expires_at",
-        "role",
-        "app_role",
-      ]);
+      await AsyncStorage.multiRemove(["token", "expires_at", "role"]);
 
-      showAlert("Logout", "Berhasil logout!");
-      router.replace("/login");
-    } catch (error) {
-      console.error("Gagal logout:", error);
-      showAlert("Error", "Gagal logout, coba lagi.");
+      router.replace("/login"); // langsung ganti ke login
+      return;
     }
+
+    Alert.alert("Konfirmasi", "Yakin ingin logout?", [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Ya, Logout",
+        onPress: async () => {
+          try {
+            await storage.deleteItem("token");
+            await storage.deleteItem("expires_at");
+            await storage.deleteItem("role");
+            await AsyncStorage.multiRemove(["token", "expires_at", "role"]);
+
+            // 🔥 Bersihkan semua route history
+            router.dismissAll();
+            router.replace("/login");
+          } catch (error) {
+            console.error("Gagal logout:", error);
+            Alert.alert("Error", "Gagal logout, coba lagi.");
+          }
+        },
+      },
+    ]);
   };
 
   const handleGoBack = () => {

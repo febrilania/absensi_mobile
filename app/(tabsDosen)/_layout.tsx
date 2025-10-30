@@ -1,14 +1,40 @@
+import { storage } from "@/src/utils/storage";
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
+import { Tabs, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Layout() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  // 🔐 Cek login state setiap kali layout dimuat
+
+  useFocusEffect(
+    useCallback(() => {
+      const checkAuth = async () => {
+        try {
+          const token = await storage.getItem("token");
+          if (!token) {
+            router.dismissAll();
+            router.replace("/login");
+          }
+        } catch (error) {
+          console.error("Gagal memeriksa autentikasi:", error);
+          router.dismissAll();
+          router.replace("/login");
+        }
+      };
+
+      checkAuth();
+    }, [])
+  );
 
   return (
     <Tabs
-      key="tabsDosen"
+      key="tabs"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
@@ -17,8 +43,8 @@ export default function Layout() {
           backgroundColor: "#fff",
           borderTopWidth: 0,
           elevation: 10,
-          height: 60 + insets.bottom, // tambahkan tinggi sesuai area aman bawah
-          paddingBottom: insets.bottom, // supaya isi tab tidak kepotong
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarActiveTintColor: "#1E90FF",
         tabBarInactiveTintColor: "#aaa",

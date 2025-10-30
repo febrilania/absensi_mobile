@@ -4,7 +4,7 @@ import { storage } from "@/src/utils/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -24,6 +24,33 @@ export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // 🚪 Cek apakah user sudah login sebelumnya
+  useEffect(() => {
+    const checkToken = async () => {
+      try {
+        const token = await storage.getItem("token");
+        const role = await storage.getItem("app_role");
+
+        if (token && role) {
+          router.dismissAll(); // 🔥 Bersihkan history
+          setTimeout(() => {
+            if (role === "dosen") {
+              router.replace("/(tabsDosen)/beranda");
+            } else if (role === "mahasiswa") {
+              router.replace("/(tabs)/beranda");
+            } else if (role === "karyawan") {
+              router.replace("/(tabsKaryawan)/beranda");
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.error("Gagal memeriksa token login:", error);
+      }
+    };
+
+    checkToken();
+  }, []);
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -52,7 +79,7 @@ export default function LoginScreen() {
           return;
         }
 
-        // ✅ Simpan token, role, dan appRole di SecureStore & AsyncStorage
+        // ✅ Simpan token & role
         await saveToken(token, expiresIn);
         await storage.setItem("role", role);
         await storage.setItem("app_role", appRole);
@@ -61,7 +88,7 @@ export default function LoginScreen() {
 
         Alert.alert("Berhasil", "Login berhasil!");
 
-        // ✅ Bersihkan seluruh stack sebelum pindah layout
+        // 🔥 Hapus seluruh route history sebelum pindah halaman
         router.dismissAll();
 
         setTimeout(() => {
@@ -70,7 +97,7 @@ export default function LoginScreen() {
           } else if (appRole === "mahasiswa") {
             router.replace("/(tabs)/beranda");
           } else if (appRole === "karyawan") {
-            router.replace("/(tabsKaryawan)/beranda")
+            router.replace("/(tabsKaryawan)/beranda");
           }
         }, 100);
       } else {
